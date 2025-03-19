@@ -156,6 +156,71 @@
 
     // 2D array to store the state of each cell: 'red', 'yellow', or null
     const boardState = Array.from({ length: ROWS }, () => Array(COLS).fill(null));
+    function checkForWin(board, color) {
+  // board: 2D array (ROWS x COLS)
+  // color: 'red' or 'yellow'
+  // Returns true if color has 4 in a row
+
+  // 1) Check horizontals
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS - 3; c++) {
+      if (
+        board[r][c] === color &&
+        board[r][c+1] === color &&
+        board[r][c+2] === color &&
+        board[r][c+3] === color
+      ) {
+        return true;
+      }
+    }
+  }
+
+  // 2) Check verticals
+  for (let r = 0; r < ROWS - 3; r++) {
+    for (let c = 0; c < COLS; c++) {
+      if (
+        board[r][c] === color &&
+        board[r+1][c] === color &&
+        board[r+2][c] === color &&
+        board[r+3][c] === color
+      ) {
+        return true;
+      }
+    }
+  }
+
+  // 3) Check diagonals (down-right)
+  for (let r = 0; r < ROWS - 3; r++) {
+    for (let c = 0; c < COLS - 3; c++) {
+      if (
+        board[r][c] === color &&
+        board[r+1][c+1] === color &&
+        board[r+2][c+2] === color &&
+        board[r+3][c+3] === color
+      ) {
+        return true;
+      }
+    }
+  }
+
+  // 4) Check diagonals (down-left)
+  for (let r = 0; r < ROWS - 3; r++) {
+    for (let c = 3; c < COLS; c++) {
+      if (
+        board[r][c] === color &&
+        board[r+1][c-1] === color &&
+        board[r+2][c-2] === color &&
+        board[r+3][c-3] === color
+      ) {
+        return true;
+      }
+    }
+  }
+
+  // If no 4 in a row found
+  return false;
+}
+
 
     /* 
       Below are the column -> content mappings.
@@ -1044,27 +1109,35 @@ print("Testing Accuracy:", acc)
     /*******************************************
      * DROP DISC LOGIC
      *******************************************/
-    function dropDisc(column) {
-      // Find the lowest empty row in this column
-      for (let row = ROWS - 1; row >= 0; row--) {
-        if (boardState[row][column] === null) {
-          boardState[row][column] = currentPlayer; // place disc
+   function dropDisc(column) {
+  // Find the lowest empty row in this column
+  for (let row = ROWS - 1; row >= 0; row--) {
+    if (boardState[row][column] === null) {
+      boardState[row][column] = currentPlayer; // place disc
 
-          // Update the UI
-          const cellDiv = getCellDiv(row, column);
-          cellDiv.innerHTML = `<div class="${currentPlayer}-disc"></div>`;
+      // Update the UI
+      const cellDiv = getCellDiv(row, column);
+      cellDiv.innerHTML = `<div class="${currentPlayer}-disc"></div>`;
 
-          // Show project info based on column
-          showProjectModal(column);
-
-          // Switch player color (purely for variety in discs)
-          currentPlayer = (currentPlayer === 'red') ? 'yellow' : 'red';
-          return;
-        }
+      // Check for a winning condition
+      if (checkForWin(boardState, currentPlayer)) {
+        // Easter Egg: redirect to your resume
+        alert(`${currentPlayer.toUpperCase()} has connected 4! Redirecting...`);
+        window.open("https://github.com/Sixteen1-6/Resume/blob/main/Shubhanshu%20Pokharel%20Resume%20(Master%20Copy).pdf", "_blank");
+        return; // End the function so no further moves
       }
-      // If column is full, do nothing or show a message
-      alert('This column is full! Try a different one.');
+
+      // Show project info based on column
+      showProjectModal(column);
+
+      // Switch player color (purely for variety in discs)
+      currentPlayer = (currentPlayer === 'red') ? 'yellow' : 'red';
+      return;
     }
+  }
+  // If column is full, do nothing or show a message
+  alert('This column is full! Try a different one.');
+}
 
     // Helper to fetch the cell element in the DOM
     function getCellDiv(row, col) {
