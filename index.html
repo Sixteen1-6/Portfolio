@@ -63,7 +63,7 @@
       width: 50px;
       height: 50px;
       border-radius: 50%;
-      background: #e53a40;
+      background: #e53a40; /* You can change these colors if you like. */
     }
     .yellow-disc {
       width: 50px;
@@ -71,14 +71,8 @@
       border-radius: 50%;
       background: #f1c40f;
     }
-    .empty-disc {
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      background: transparent;
-    }
 
-    /* Modal styles */
+    /* Modal (overlay) */
     #overlay {
       position: fixed;
       top: 0;
@@ -94,11 +88,13 @@
     #modal {
       background: #ffffff;
       border-radius: 8px;
-      width: 80%;
-      max-width: 600px;
+      width: 90%;
+      max-width: 900px; /* Increase max-width for large code blocks */
       padding: 20px;
       position: relative;
       box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+      max-height: 80vh; /* So big code doesn't overflow the screen */
+      overflow-y: auto; /* Enable scrolling inside the modal */
     }
     #modal h2 {
       margin-bottom: 10px;
@@ -132,7 +128,7 @@
 <body>
 
   <h1>Connect Four Portfolio</h1>
-  <p>Drop a disc in any column to learn more about my projects.</p>
+  <p>Drop a disc in any column to learn more about my projects (BST, RBT, Water Sampler, Neural Network, etc.).</p>
 
   <!-- Board Container -->
   <div id="board-container"></div>
@@ -161,38 +157,661 @@
     // 2D array to store the state of each cell: 'red', 'yellow', or null
     const boardState = Array.from({ length: ROWS }, () => Array(COLS).fill(null));
 
-    // Quick mapping of column to "project info"
-    // You can adapt these to your actual project details/HTML.
+    /* 
+      Below are the column -> content mappings.
+      We will place your FULL code for BST/RBT in the BST column (column 0),
+      and your feed-forward neural network code in the NN column (column 3).
+      You can adapt other columns as you like.
+    */
+
     const columnProjectDetails = {
       0: {
-        title: "Binary Search Tree (BST)",
+        title: "Binary Search Tree (BST) and Red-Black Tree (C++ Full Code)",
         content: `
-          <p><strong>BST Overview:</strong> A binary search tree keeps elements in sorted order,
-          allowing for efficient search, insertion, and deletion.</p>
-          <ul>
-            <li>Time Complexity (avg): O(log n)</li>
-            <li>Worst Case (unbalanced): O(n)</li>
-          </ul>
-          <p>
-            <a href="https://github.com/YOUR_USERNAME/YOUR_BST_PROJECT" target="_blank">
-              View BST Project on GitHub
-            </a>
-          </p>
+          <p><strong>BST &amp; RBT Full Source Code:</strong></p>
+          <pre><code>
+// === BEGIN C++ CODE ===
+#include &lt;iostream&gt;
+#include &lt;vector&gt;
+#include &lt;cstdlib&gt;
+#include &lt;fstream&gt;
+#include &lt;string&gt;
+#include &lt;limits&gt;
+#include &lt;sstream&gt;
+#include &lt;filesystem&gt; // Using the standard filesystem library
+
+using namespace std;
+namespace fs = std::filesystem;
+
+const string COLOR[] = { "BLACK", "RED" };
+
+vector<double> dataLoad(const string& filen) {
+    vector<double> data;
+    ifstream file(filen);
+
+    if (!file) {
+        cout &lt;&lt; "Error: Could not open file " &lt;&lt; filen &lt;&lt; endl;
+        return data;
+    }
+
+    double value; //Temporary variable to hold values
+    string line; // Temporary string to hold line
+
+    // Read the file line by line
+    while (getline(file, line)) {
+        stringstream ss(line);
+        // Try to extract a value from each line
+        if (ss &gt;&gt; value) {
+            data.push_back(value);
+        }
+    }
+
+    file.close();
+    return data;
+}
+
+template &lt;typename T&gt;
+class BST {
+private:
+    // BST Node definition
+    struct Node {
+        T value;
+        Node* left;
+        Node* right;
+        Node* parent;
+
+        Node(double val) {
+            value = val;
+            left = nullptr;
+            right = nullptr;
+            parent = nullptr;
+        }
+    };
+
+    Node* root;
+
+    // Insert a value into the BST 
+    void BSTInsert(Node*& currentNode, Node* parent, T value) {
+        if (!currentNode) {
+            currentNode = new Node(value);
+            currentNode->parent = parent;
+            return;
+        }
+        if (value &lt; currentNode->value) {
+            BSTInsert(currentNode->left, currentNode, value);
+        }
+        else {
+            BSTInsert(currentNode->right, currentNode, value);
+        }
+    }
+
+    // Find a node with a given value
+    Node* tree_find(Node* currentNode, T value) {
+        while (currentNode && currentNode->value != value) {
+            if (value &lt; currentNode->value)
+                currentNode = currentNode->left;
+            else
+                currentNode = currentNode->right;
+        }
+        return currentNode;
+    }
+
+    // Find the minimum node in a subtree
+    Node* tree_min(Node* currentNode) {
+        while (currentNode && currentNode->left) {
+            currentNode = currentNode->left;
+        }
+        return currentNode;
+    }
+
+    // Replace subtree rooted at u with subtree rooted at v
+    void transplant(Node* u, Node* v) {
+        if (u->parent == nullptr) {
+            root = v;
+        }
+        else if (u == u->parent->left) {
+            u->parent->left = v;
+        }
+        else {
+            u->parent->right = v;
+        }
+        if (v) {
+            v->parent = u->parent;
+        }
+    }
+
+    // Calculate the height of the tree recursively
+    int treeHeight(Node* currentNode) {
+        if (currentNode == NULL) {
+            // base case height is 0
+            return 0;
+        }
+        int leftHeight = treeHeight(currentNode->left);
+        int rightHeight = treeHeight(currentNode->right);
+
+        if (leftHeight &gt; rightHeight) {
+            return leftHeight + 1;
+        }
+        else {
+            return rightHeight + 1;
+        }
+    }
+
+    // Print the tree using inorder traversal
+    void printTree(Node* currentNode) {
+        if (currentNode) {
+            printTree(currentNode->left);
+            cout &lt;&lt; currentNode->value &lt;&lt; " ";
+            printTree(currentNode->right);
+        }
+    }
+
+    // Delete a node from the tree
+    void deleteNode(Node* z) {
+        // If z is null then the node does not exist.
+        if (z == nullptr) {
+            cout &lt;&lt; "Error: The node given does not exist " &lt;&lt; endl;
+            return;
+        }
+        // Case 1 & 2: z has at most one child.
+        if (z->left == nullptr) {
+            transplant(z, z->right);
+        }
+        else if (z->right == nullptr) {
+            transplant(z, z->left);
+        }
+        // Case 3: z has two children.
+        else {
+            Node* heir = tree_min(z->right);
+
+            if (heir->parent != z) {
+                transplant(heir, heir->right);
+                heir->right = z->right;
+                if (heir->right != nullptr)
+                    heir->right->parent = heir;
+            }
+            transplant(z, heir);
+            heir->left = z->left;
+            if (heir->left != nullptr)
+                heir->left->parent = heir;
+        }
+
+        delete z;
+    }
+
+public:
+    BST() : root(nullptr) {}
+
+    // Skip insertion if already found
+    void insert(T value) {
+        if (find(value)) {
+            return;
+        }
+        Node* parent = nullptr;
+        BSTInsert(root, parent, value);
+    }
+
+    bool find(T value) {
+        return (tree_find(root, value) != nullptr);
+    }
+
+    int height() {
+        return treeHeight(root);
+    }
+
+    void print() {
+        printTree(root);
+        cout &lt;&lt; endl;
+    }
+
+    void remove(T value) {
+        Node* node = tree_find(root, value);
+        deleteNode(node);
+    }
+};
+
+/* =============== RED-BLACK TREE =============== */
+template &lt;typename T&gt;
+class RedBlackTree {
+private:
+    struct Node {
+        T value;
+        Node* left;
+        Node* right;
+        Node* parent;
+        string color;
+
+        Node(T val) {
+            value = val;
+            left = nullptr;
+            right = nullptr;
+            parent = nullptr;
+            color = COLOR[1]; // RED by default
+        }
+    };
+
+    Node* root;
+    Node* NIL; //  NIL leaf
+
+    void leftRotate(Node* x) {
+        Node* y = x->right;
+        x->right = y->left;
+        if (y->left != NIL) {
+            y->left->parent = x;
+        }
+
+        y->parent = x->parent;
+        if (x->parent == nullptr) {
+            root = y;
+        }
+        else if (x == x->parent->left) {
+            x->parent->left = y;
+        }
+        else {
+            x->parent->right = y;
+        }
+
+        y->left = x;
+        x->parent = y;
+    }
+
+    void rightRotate(Node* y) {
+        Node* x = y->left;
+        y->left = x->right;
+        if (x->right != NIL) {
+            x->right->parent = y;
+        }
+
+        x->parent = y->parent;
+        if (y->parent == nullptr) {
+            root = x;
+        }
+        else if (y == y->parent->left) {
+            y->parent->left = x;
+        }
+        else {
+            y->parent->right = x;
+        }
+
+        x->right = y;
+        y->parent = x;
+    }
+
+    void RBInsertFixup(Node* z) {
+        Node* y;
+        while (z->parent != NIL && z->parent->color == COLOR[1]) {
+            if (z->parent == z->parent->parent->left) {
+                y = z->parent->parent->right;
+                if (y != NIL && y->color == COLOR[1]) {
+                    z->parent->color = COLOR[0];
+                    y->color = COLOR[0];
+                    z->parent->parent->color = COLOR[1];
+                    z = z->parent->parent;
+                }
+                else {
+                    if (z == z->parent->right) {
+                        z = z->parent;
+                        leftRotate(z);
+                    }
+                    z->parent->color = COLOR[0];
+                    z->parent->parent->color = COLOR[1];
+                    rightRotate(z->parent->parent);
+                }
+            }
+            else {
+                y = z->parent->parent->left;
+                if (y != NIL && y->color == COLOR[1]) {
+                    z->parent->color = COLOR[0];
+                    y->color = COLOR[0];
+                    z->parent->parent->color = COLOR[1];
+                    z = z->parent->parent;
+                }
+                else {
+                    if (z == z->parent->left) {
+                        z = z->parent;
+                        rightRotate(z);
+                    }
+                    z->parent->color = COLOR[0];
+                    z->parent->parent->color = COLOR[1];
+                    leftRotate(z->parent->parent);
+                }
+            }
+            if (z == root) break;
+        }
+        root->color = COLOR[0];
+    }
+
+    Node* tree_find(Node* node, T value) {
+        if (node == NIL || value == node->value) {
+            return node;
+        }
+        if (value &lt; node->value) {
+            return tree_find(node->left, value);
+        }
+        return tree_find(node->right, value);
+    }
+
+    void printTree(Node* node) {
+        if (node != NIL) {
+            printTree(node->left);
+            cout &lt;&lt; node->value &lt;&lt; "(" &lt;&lt; node->color &lt;&lt; ") ";
+            printTree(node->right);
+        }
+    }
+
+    Node* tree_min(Node* node) {
+        while (node->left != NIL) {
+            node = node->left;
+        }
+        return node;
+    }
+
+    void transplant(Node* u, Node* v) {
+        if (u->parent == nullptr) {
+            root = v;
+        }
+        else if (u == u->parent->left) {
+            u->parent->left = v;
+        }
+        else {
+            u->parent->right = v;
+        }
+        v->parent = u->parent;
+    }
+
+    void RBDeleteFixup(Node* x) {
+        Node* w;
+        while (x != root && x->color == COLOR[0]) {
+            if (x == x->parent->left) {
+                w = x->parent->right;
+                if (w->color == COLOR[1]) {
+                    w->color = COLOR[0];
+                    x->parent->color = COLOR[1];
+                    leftRotate(x->parent);
+                    w = x->parent->right;
+                }
+                if (w->left->color == COLOR[0] && w->right->color == COLOR[0]) {
+                    w->color = COLOR[1];
+                    x = x->parent;
+                }
+                else {
+                    if (w->right->color == COLOR[0]) {
+                        w->left->color = COLOR[0];
+                        w->color = COLOR[1];
+                        rightRotate(w);
+                        w = x->parent->right;
+                    }
+                    w->color = x->parent->color;
+                    x->parent->color = COLOR[0];
+                    w->right->color = COLOR[0];
+                    leftRotate(x->parent);
+                    x = root;
+                }
+            }
+            else {
+                w = x->parent->left;
+                if (w->color == COLOR[1]) {
+                    w->color = COLOR[0];
+                    x->parent->color = COLOR[1];
+                    rightRotate(x->parent);
+                    w = x->parent->left;
+                }
+                if (w->right->color == COLOR[0] && w->left->color == COLOR[0]) {
+                    w->color = COLOR[1];
+                    x = x->parent;
+                }
+                else {
+                    if (w->left->color == COLOR[0]) {
+                        w->right->color = COLOR[0];
+                        w->color = COLOR[1];
+                        leftRotate(w);
+                        w = x->parent->left;
+                    }
+                    w->color = x->parent->color;
+                    x->parent->color = COLOR[0];
+                    w->left->color = COLOR[0];
+                    rightRotate(x->parent);
+                    x = root;
+                }
+            }
+        }
+        x->color = COLOR[0];
+    }
+
+    void deleteNode(Node* z) {
+        Node* y = z;
+        Node* x;
+        string y_original_color = y->color;
+
+        if (z->left == NIL) {
+            x = z->right;
+            transplant(z, z->right);
+        }
+        else if (z->right == NIL) {
+            x = z->left;
+            transplant(z, z->left);
+        }
+        else {
+            y = tree_min(z->right);
+            y_original_color = y->color;
+            x = y->right;
+
+            if (y->parent == z) {
+                x->parent = y;
+            }
+            else {
+                transplant(y, y->right);
+                y->right = z->right;
+                y->right->parent = y;
+            }
+            transplant(z, y);
+            y->left = z->left;
+            y->left->parent = y;
+            y->color = z->color;
+        }
+
+        if (y_original_color == COLOR[0]) {
+            RBDeleteFixup(x);
+        }
+        delete z;
+    }
+
+    int treeHeight(Node* currentNode) {
+        if (currentNode == NIL) {
+            return 0;
+        }
+        int leftHeight = treeHeight(currentNode->left);
+        int rightHeight = treeHeight(currentNode->right);
+        return (leftHeight &gt; rightHeight) ? leftHeight + 1 : rightHeight + 1;
+    }
+
+public:
+    // Constructor
+    RedBlackTree() {
+        NIL = new Node(T());
+        NIL->color = COLOR[0];
+        NIL->left = nullptr;
+        NIL->right = nullptr;
+        root = NIL;
+    }
+
+    // Skip insertion if value already present
+    void insert(T value) {
+        if (tree_find(root, value) != NIL) {
+            return;
+        }
+        Node* z = new Node(value);
+        z->left = NIL;
+        z->right = NIL;
+
+        Node* y = nullptr;
+        Node* x = this->root;
+
+        while (x != NIL) {
+            y = x;
+            if (z->value &lt; x->value) {
+                x = x->left;
+            }
+            else {
+                x = x->right;
+            }
+        }
+
+        z->parent = y;
+        if (y == nullptr) {
+            root = z;
+        }
+        else if (z->value &lt; y->value) {
+            y->left = z;
+        }
+        else {
+            y->right = z;
+        }
+
+        if (z->parent == nullptr) {
+            z->color = COLOR[0];
+            return;
+        }
+        if (z->parent->parent == nullptr) {
+            return;
+        }
+        RBInsertFixup(z);
+    }
+
+    void remove(T value) {
+        Node* z = tree_find(root, value);
+        if (z == NIL) {
+            cout &lt;&lt; "Error: Value " &lt;&lt; value
+                 &lt;&lt; " not found in the Red-Black Tree." &lt;&lt; endl;
+            return;
+        }
+        deleteNode(z);
+    }
+
+    bool find(T value) {
+        return tree_find(root, value) != NIL;
+    }
+
+    int height() {
+        return treeHeight(root);
+    }
+
+    void print() {
+        printTree(root);
+        cout &lt;&lt; endl;
+    }
+};
+
+int main(int argc, char** argv) {
+    if (argc != 2) {
+        cout &lt;&lt; "Please input the folder " &lt;&lt; endl;
+        return 1;
+    }
+
+    string folderX = argv[1];  // gets the input as a folder
+
+    if (!fs::exists(folderX) || !fs::is_directory(folderX)) {
+        cout &lt;&lt; folderX &lt;&lt; " is not a valid directory" &lt;&lt; endl;
+        return 1;
+    }
+
+    // Create BST
+    BST&lt;double&gt; bst;
+    RedBlackTree&lt;double&gt; rbt;
+    BST&lt;double&gt; TestBadbst;
+    RedBlackTree&lt;double&gt; TestBadrbt;
+
+    // Get all files in directory
+    vector&lt;string&gt; files;
+    for (const auto&amp; entry : fs::directory_iterator(folderX)) {
+        if (fs::is_regular_file(entry.path())) {
+            files.push_back(entry.path().string());
+        }
+    }
+
+    // Need at least 3 files
+    if (files.size() &lt; 3) {
+        cout &lt;&lt; "Need at least 3 files in the directory" &lt;&lt; endl;
+        return 1;
+    }
+
+    // First file: delete nodes
+    cout &lt;&lt; "Processing deletions : " &lt;&lt; files[0] &lt;&lt; endl;
+    vector&lt;double&gt; deleteData = dataLoad(files[0]);
+    if (deleteData.empty()) {
+        cout &lt;&lt; "No deletion found in " &lt;&lt; files[0] &lt;&lt; endl;
+    }
+
+    // Next two files: insert nodes
+    for (int i = 1; i &lt; 3 &amp;&amp; i &lt; (int)files.size(); i++) {
+        cout &lt;&lt; "Processing insertions in " &lt;&lt; files[i] &lt;&lt; endl;
+        vector&lt;double&gt; insertData = dataLoad(files[i]);
+        if (!insertData.empty()) {
+            for (double val : insertData) {
+                cout &lt;&lt; "Inserting node with value " &lt;&lt; val &lt;&lt; " into BST and RBT " &lt;&lt; i &lt;&lt; endl;
+                if (i == 2) {
+                    bst.insert(val);
+                    rbt.insert(val);
+                }
+                else {
+                    TestBadbst.insert(val);
+                    TestBadrbt.insert(val);
+                }
+            }
+        }
+        else {
+            cout &lt;&lt; "No insertion found in " &lt;&lt; files[i] &lt;&lt; endl;
+        }
+    }
+
+    cout &lt;&lt; "Height before deletion:" &lt;&lt; endl;
+    cout &lt;&lt; "BST height: " &lt;&lt; bst.height() &lt;&lt; endl;
+    cout &lt;&lt; "Red-Black Tree height: " &lt;&lt; rbt.height() &lt;&lt; endl;
+    cout &lt;&lt; "test bad height : " &lt;&lt; endl;
+    cout &lt;&lt; "BST height: " &lt;&lt; TestBadbst.height() &lt;&lt; endl;
+    cout &lt;&lt; "Red-Black Tree height: " &lt;&lt; TestBadrbt.height() &lt;&lt; endl;
+
+    for (int i = 0; i &lt; (int)deleteData.size(); i++) {
+        cout &lt;&lt; "Deleteing the node for value " &lt;&lt; deleteData[i] &lt;&lt; "." &lt;&lt; endl;
+        bst.remove(deleteData[i]);
+        rbt.remove(deleteData[i]);
+        TestBadbst.remove(deleteData[i]);
+        TestBadrbt.remove(deleteData[i]);
+    }
+
+    cout &lt;&lt; "Final tree in-order : ";
+    bst.print();
+    cout &lt;&lt; "Tree height: " &lt;&lt; bst.height() &lt;&lt; endl;
+
+    cout &lt;&lt; "Red-Black Tree in-order: ";
+    rbt.print();
+    cout &lt;&lt; "Red-Black Tree height: " &lt;&lt; rbt.height() &lt;&lt; endl;
+
+    cout &lt;&lt; "Final tree in-order Test Bad : ";
+    TestBadbst.print();
+    cout &lt;&lt; "Tree height: " &lt;&lt; TestBadbst.height() &lt;&lt; endl;
+
+    cout &lt;&lt; "Red-Black Tree in-order Test bad: ";
+    TestBadrbt.print();
+    cout &lt;&lt; "Red-Black Tree height: " &lt;&lt; TestBadrbt.height() &lt;&lt; endl;
+
+    return 0;
+}
+// === END C++ CODE ===
+          </code></pre>
         `
       },
       1: {
-        title: "Red-Black Tree",
+        title: "Red-Black Tree (Summary)",
         content: `
           <p><strong>Red-Black Tree Overview:</strong> A self-balancing BST variant that ensures
-          the tree remains approximately balanced during insertions/deletions.</p>
+          the tree remains approximately balanced.</p>
           <ul>
-            <li>Time Complexity: O(log n) worst case</li>
-            <li>Balancing achieved via coloring and rotations</li>
+            <li>Worst-case Time Complexity: O(log n)</li>
+            <li>Balancing achieved via coloring and rotations.</li>
           </ul>
-          <p>
-            <a href="https://github.com/YOUR_USERNAME/YOUR_RBT_PROJECT" target="_blank">
-              View RBT Project on GitHub
-            </a>
+          <p>This RBT code is part of the BST/RBT file displayed in Column 0.<br />
+             <a href="https://github.com/YOUR_USERNAME/YOUR_RBT_PROJECT" target="_blank">View RBT Repo</a>
           </p>
         `
       },
@@ -213,18 +832,158 @@
         `
       },
       3: {
-        title: "Feed-Forward Neural Network",
+        title: "Feed-Forward Neural Network (Python Full Code)",
         content: `
-          <p><strong>Neural Network Overview:</strong> A feed-forward network where information
-          moves in one direction, from input to output.</p>
-          <ul>
-            <li>Great for classification or regression tasks</li>
-            <li>Composed of an input layer, hidden layers, and an output layer</li>
-          </ul>
+          <p><strong>Neural Network Full Source Code:</strong></p>
+          <pre><code>
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+import matplotlib.pyplot as plt
+
+def sigmoid(t):
+    return 1.0/(1 + np.exp(-t))
+
+def loss(y, z):
+    # compute loss(y, sigmoid(z))
+    # y --> label
+    # z --> model output
+
+    loss_val = np.mean(-y*(mylog(z)) - (1-y)*mylogminus(z))
+    return loss_val
+
+def mylog(t):
+    # compute log(sigmoid(t)) to be used in loss
+    y = 0*t
+    m = t.shape[0]
+    for i in range(m):
+        if t[i] &lt; 0:
+            y[i] = t[i] - np.log(1+np.exp(t[i]))
+        else:
+            y[i] = -np.log(1+np.exp(-t[i]))
+    return y
+
+def mylogminus(t):
+    # compute log(1 - sigmoid(t)) to be used in loss
+    y = 0*t
+    m = t.shape[0]
+    for i in range(m):
+        if t[i] &lt; 0:
+            y[i] = -np.log(1+np.exp(t[i]))
+        else:
+            y[i] = -t[i] - np.log(1+np.exp(-t[i]))
+    return y
+
+def ReLU(t):
+    return np.maximum(t, 0)
+
+def ReLUprime(t):
+    return np.where(t &gt; 0, 1, 0)
+
+def model(w, b, W_one, b_one, X):
+    # X --> N-by-n Input.
+    # z --> model output.
+    # w --> output layer weight.
+    # b --> output layer bias.
+    # W_one --> hidden layer weight.
+    # b_one --> hidden layer bias.
+
+    h1 = ReLU(np.dot(W_one, X.T) + b_one[:, None])
+    z = np.dot(w, h1) + b
+    return z
+
+def gradients(w, b, W_one, b_one, X, y):
+    for_ward_prop_array=[[],[],[]]
+    backord_prop_array=[[],[],[],[]]
+    for i in range(len(y)):
+        a = np.dot(W_one, X[i].T) + b_one
+        h1 = ReLU(a)
+        z = np.dot(w, h1) + b
+        for_ward_prop_array[0].append(z)
+        for_ward_prop_array[1].append(h1)
+        for_ward_prop_array[2].append(a)
+
+    for i,j,k,l in zip(for_ward_prop_array[0],
+                       for_ward_prop_array[1],
+                       for_ward_prop_array[2],
+                       y):
+        dl = sigmoid(i) - l
+        db = np.array(dl)
+        backord_prop_array[0].append(db.T)
+        dw = db.T * np.array(ReLU(j).T)
+        backord_prop_array[1].append(dw)
+        dh = dl * w
+        da = dh * ReLUprime(k)
+        dW_one = np.array(da)[:,None] * X[ for_ward_prop_array[0].index(i) ]
+        backord_prop_array[2].append(dW_one)
+        db_one = np.array(da)
+        backord_prop_array[3].append(db_one)
+
+    z = model(w, b, W_one, b_one, X)
+    dw = np.mean(np.array(backord_prop_array[1]), axis=0)
+    db = np.mean(np.array(backord_prop_array[0]), axis=0)
+    dW_one = np.mean(np.array(backord_prop_array[2]), axis=0)
+    db_one = np.mean(np.array(backord_prop_array[3]), axis=0)
+    return z, dw, db, dW_one, db_one
+
+def train(w, b, W_one, b_one, X, y, iter, lr):
+    losses = []
+    w = np.array(w)
+    b = np.array(b,dtype=np.float64)
+    W_one = np.array(W_one)
+    b_one = np.array(b_one)
+    for i in range(iter):
+        z, dw, db, dW_one, db_one = gradients(w, b, W_one, b_one, X, y)
+        w -= lr * dw
+        b -= lr * db
+        W_one -= lr * dW_one
+        b_one += lr * db_one
+        loss_val = loss(y, z)
+        losses.append(loss_val)
+    return w, b, W_one, b_one, losses
+
+def predict(output):
+    return (output &gt; 0).astype(int)
+
+def accuracy(y, y_predict):
+    return np.sum(y == y_predict) / len(y)
+
+from sklearn.datasets import make_moons
+X_train, y_train = make_moons(n_samples=500, noise=0.1)
+X_test, y_test = make_moons(n_samples=1000, noise=0.1)
+
+plt.figure()
+plt.plot(X_train[:, 0][y_train==0], X_train[:, 1][y_train==0], "g^")
+plt.plot(X_train[:, 0][y_train==1], X_train[:, 1][y_train==1], "bs")
+
+# initialization
+l_one = 150
+n = X_train.shape[1]
+w = np.random.randn(l_one)
+b = 0
+W_one = np.random.randn(l_one, X_train.shape[1])
+b_one = 0*np.random.rand(l_one)
+
+# train
+w, b, W_one, b_one, losses = train(w, b, W_one, b_one, X_train, y_train, iter=1000, lr=0.1)
+
+# plot losses
+plt.figure()
+plt.plot(losses)
+
+# training accuracy
+z = model(w,b,W_one, b_one,X_train)
+acc = accuracy(np.squeeze(y_train), predict(np.squeeze(z)))
+print("Training Accuracy:", acc)
+
+# testing accuracy
+z = model(w,b,W_one, b_one,X_test)
+acc = accuracy(np.squeeze(y_test), predict(np.squeeze(z)))
+print("Testing Accuracy:", acc)
+          </code></pre>
           <p>
-            <a href="https://github.com/YOUR_USERNAME/YOUR_NN_PROJECT" target="_blank">
-              View Neural Network Project on GitHub
-            </a>
+            <em>This Python script trains a simple one-hidden-layer feed-forward network 
+            on the "make_moons" dataset and evaluates performance.</em>
           </p>
         `
       },
@@ -232,7 +991,7 @@
         title: "Extra Space",
         content: `
           <p>Currently open for new ideas. Feel free to drop a disc here for a sneak peek
-          of upcoming projects.</p>
+          of upcoming projects or expansions of the above projects.</p>
         `
       },
       5: {
@@ -256,7 +1015,7 @@
     };
 
     /*******************************************
-     * DYNAMIC BOARD CREATION
+     * CREATE THE BOARD
      *******************************************/
     const boardContainer = document.getElementById('board-container');
 
@@ -309,7 +1068,6 @@
 
     // Helper to fetch the cell element in the DOM
     function getCellDiv(row, col) {
-      // The board container's childNodes for each row:
       const rowDiv = boardContainer.children[row];
       return rowDiv.children[col];
     }
